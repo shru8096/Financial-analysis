@@ -1,0 +1,72 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('Financial Analytics data.csv')
+
+# Print column names to verify their exact spelling and format
+print("Columns in dataset:", df.columns)
+
+# Strip any leading or trailing whitespace from the column names
+df.columns = [col.strip() for col in df.columns]
+
+# Data Preprocessing
+def preprocess_data(df):
+    df.dropna(inplace=True)
+    
+    # Ensure 'Mar Cap - Crore' column is properly formatted
+    df['Mar Cap - Crore'] = df['Mar Cap - Crore'].astype(str).str.replace(',', '').astype(float)
+    
+    # Ensure 'Sales Qtr - Crore' is treated as numeric
+    df['Sales Qtr - Crore'] = pd.to_numeric(df['Sales Qtr - Crore'], errors='coerce')
+    
+    # Check for any rows where conversion to float failed
+    if df['Mar Cap - Crore'].isnull().any():
+        print("Warning: Some values in 'Mar Cap - Crore' could not be converted to float.")
+        df = df.dropna(subset=['Mar Cap - Crore'])
+    
+    return df
+
+df = preprocess_data(df)
+
+# Exploratory Data Analysis
+def eda(df):
+    print(df.describe())
+    sns.histplot(df['Mar Cap - Crore'], kde=True)
+    plt.show()
+    sns.histplot(df['Sales Qtr - Crore'], kde=True)
+    plt.show()
+
+eda(df)
+
+# Key Metrics
+def key_metrics(df):
+    print("Total Market Cap:", df['Mar Cap - Crore'].sum())
+    print("Mean Market Cap:", df['Mar Cap - Crore'].mean())
+    print("Median Market Cap:", df['Mar Cap - Crore'].median())
+
+key_metrics(df)
+
+# Relationship Analysis
+def relationship_analysis(df):
+    correlation = df['Mar Cap - Crore'].corr(df['Sales Qtr - Crore'])
+    print("Correlation between Market Cap and Sales:", correlation)
+    sns.scatterplot(x='Mar Cap - Crore', y='Sales Qtr - Crore', data=df)
+    plt.show()
+
+relationship_analysis(df)
+
+# Visualization in Python (optional if using Tableau or Power BI)
+def create_visualizations(df):
+    top_companies = df.nlargest(10, 'Mar Cap - Crore')
+    print("Top companies by Market Cap:")
+    print(top_companies)
+    
+    if top_companies.empty:
+        print("No data available to plot.")
+    else:
+        sns.barplot(x='Mar Cap - Crore', y='Name', data=top_companies)
+        plt.show()
+
+create_visualizations(df)
